@@ -10,7 +10,7 @@ const AdminLayout = () => {
 
   const handleLogout = () => {
     dispatch(logout());
-    navigate("/login");
+    navigate("/");
   };
 
   return (
@@ -28,6 +28,9 @@ const AdminLayout = () => {
           <Link to="/admin/report" className="px-3 py-1 bg-indigo-600 text-white rounded">
             Report
           </Link>
+          <Link to="/admin/staff-report" className="bg-purple-600 text-white px-3 py-1 rounded">
+  Staff Report
+</Link>
 
           <Link to="/admin/create-staff" className="px-3 py-1 bg-green-600 text-white rounded">
             Add Staff

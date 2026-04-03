@@ -115,12 +115,7 @@ const FormPage = () => {
         <div className="flex justify-between mb-4">
           <h2 className="font-semibold">Welcome {user?.name}</h2>
 
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 text-white px-3 py-1 rounded"
-          >
-            Logout
-          </button>
+          
         </div>
 
         {/* Card */}
