@@ -80,9 +80,9 @@ const FormPage = () => {
 
     if (!confirm) return;
 
-    const res = await dispatch(
+   const res = await dispatch(
   addTransaction({
-    serviceId: selectedService._id, // 🔥 FIX
+    serviceId: selectedService._id, // 🔥 MUST
     cashAmount: baseCash,
     bankAmount: baseBank,
     splitCash: finalCash,

@@ -17,27 +17,78 @@ const LoginPage = () => {
 
     if (res.meta.requestStatus === "fulfilled") {
       const role = res.payload.user.role;
-      role === "admin" ? navigate("/admin") : navigate("/");
+      role === "admin" ? navigate("/admin/report") : navigate("/");
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <form onSubmit={handleSubmit} className="bg-white p-6 shadow rounded space-y-4 w-80">
-        <h2 className="text-xl font-bold text-center">Login</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-200 via-white to-blue-200 px-4">
 
-        {error && <p className="text-red-500">{error}</p>}
+      {/* Card */}
+      <div className="w-full max-w-md bg-white shadow-2xl rounded-2xl p-8">
 
-        <input placeholder="Username" className="w-full border p-2"
-          onChange={(e) => setForm({ ...form, username: e.target.value })} />
+        {/* Heading */}
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold text-indigo-600">
+            Akshaya Login
+          </h1>
+          
+        </div>
 
-        <input type="password" placeholder="Password" className="w-full border p-2"
-          onChange={(e) => setForm({ ...form, password: e.target.value })} />
+        {/* Error */}
+        {error && (
+          <p className="text-red-500 text-sm text-center mb-3">
+            {error}
+          </p>
+        )}
 
-        <button className="w-full bg-blue-600 text-white p-2">
-          {loading ? "Loading..." : "Login"}
-        </button>
-      </form>
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+
+          {/* Username */}
+          <div>
+            <label className="text-sm text-gray-600">
+              Username
+            </label>
+            <input
+              type="text"
+              placeholder="Enter username"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              onChange={(e) =>
+                setForm({ ...form, username: e.target.value })
+              } required
+            />
+          </div>
+
+          {/* Password */}
+          <div>
+            <label className="text-sm text-gray-600">
+              Password
+            </label>
+            <input
+              type="password"
+              placeholder="Enter password"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              onChange={(e) =>
+                setForm({ ...form, password: e.target.value })
+              } required
+            />
+          </div>
+
+          {/* Button */}
+          <button
+            disabled={loading}
+            className="w-full bg-indigo-600 text-white py-2.5 rounded-lg font-semibold hover:bg-indigo-700 transition duration-200 shadow"
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
+
+        </form>
+
+        {/* Footer */}
+        
+
+      </div>
     </div>
   );
 };
