@@ -21,7 +21,7 @@ const AdminPage = () => {
 
   useEffect(() => {
     dispatch(fetchReport({ from, to }));
-  }, [from, to]);
+  }, [dispatch, from, to]);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -38,7 +38,6 @@ const AdminPage = () => {
         </h2>
 
         <div className="flex gap-2">
-
           <button
             onClick={() => navigate("/create-staff")}
             className="bg-indigo-600 text-white px-2 py-1 rounded text-sm"
@@ -59,22 +58,13 @@ const AdminPage = () => {
           >
             Logout
           </button>
-
         </div>
       </div>
 
       {/* Totals */}
       <div className="flex gap-3 mb-3 text-sm font-semibold">
         <div className="bg-green-100 px-3 py-1 rounded">
-          Cash: {totals?.cash || 0}
-        </div>
-
-        <div className="bg-blue-100 px-3 py-1 rounded">
-          GPay: {totals?.gpay || 0}
-        </div>
-
-        <div className="bg-gray-200 px-3 py-1 rounded">
-          Total: {totals?.total || 0}
+          Total In: {totals?.total || 0}
         </div>
       </div>
 
@@ -84,14 +74,14 @@ const AdminPage = () => {
           type="date"
           value={from}
           onChange={(e) => setFrom(e.target.value)}
-          className="border p-1"
+          className="border p-1 rounded"
         />
 
         <input
           type="date"
           value={to}
           onChange={(e) => setTo(e.target.value)}
-          className="border p-1"
+          className="border p-1 rounded"
         />
       </div>
 
@@ -111,9 +101,10 @@ const AdminPage = () => {
                 <th className="border p-2">In</th>
                 <th className="border p-2">Out</th>
                 <th className="border p-2">Cash Balance</th>
-                <th className="border p-2">Debit</th>
-                <th className="border p-2">Credit</th>
-                <th className="border p-2">Bank Balance</th>
+                <th className="border p-2">SBI Current</th>
+                <th className="border p-2">SBI Savings</th>
+                <th className="border p-2">Edistrict</th>
+                <th className="border p-2">PSA</th>
               </tr>
             </thead>
 
@@ -131,20 +122,28 @@ const AdminPage = () => {
                     {row.in}
                   </td>
 
-                  <td className="border p-2">-</td>
+                  <td className="border p-2 text-red-500">
+                    {row.out || 0}
+                  </td>
 
                   <td className="border p-2">
                     {row.cashBalance}
                   </td>
 
-                  <td className="border p-2 text-red-600">
-                    {row.debit}
+                  <td className="border p-2">
+                    {row.sbiCurrent}
                   </td>
 
-                  <td className="border p-2">-</td>
+                  <td className="border p-2">
+                    {row.sbiSavings}
+                  </td>
 
                   <td className="border p-2">
-                    {row.bankBalance}
+                    {row.edistrict}
+                  </td>
+
+                  <td className="border p-2">
+                    {row.psa}
                   </td>
 
                 </tr>

@@ -19,17 +19,16 @@ const FormPage = () => {
 
   const { user } = useSelector((state) => state.auth);
 
-  // 🔹 states
   const [selectedService, setSelectedService] = useState(null);
 
-  // service input
+  // 🔹 service inputs
   const [cashAmount, setCashAmount] = useState("");
   const [bankAmount, setBankAmount] = useState("");
 
-  // payment type
+  // 🔹 payment type
   const [paymentType, setPaymentType] = useState("");
 
-  // split values
+  // 🔹 split inputs
   const [splitCash, setSplitCash] = useState("");
   const [splitGpay, setSplitGpay] = useState("");
 
@@ -37,7 +36,6 @@ const FormPage = () => {
     dispatch(fetchServices());
   }, [dispatch]);
 
-  // 🔥 SUBMIT
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -56,11 +54,11 @@ const FormPage = () => {
       return;
     }
 
-    let finalSplitCash = 0;
+    let finalCash = 0;
     let finalGpay = 0;
 
     if (paymentType === "cash") {
-      finalSplitCash = total;
+      finalCash = total;
     } else if (paymentType === "gpay") {
       finalGpay = total;
     } else {
@@ -72,7 +70,7 @@ const FormPage = () => {
         return;
       }
 
-      finalSplitCash = c;
+      finalCash = c;
       finalGpay = g;
     }
 
@@ -83,15 +81,15 @@ const FormPage = () => {
     if (!confirm) return;
 
     const res = await dispatch(
-      addTransaction({
-        serviceName: selectedService.name,
-        cashAmount: baseCash,
-        bankAmount: baseBank,
-        splitCash: finalSplitCash,
-        gpayAmount: finalGpay,
-        paymentType,
-      })
-    );
+  addTransaction({
+    serviceId: selectedService._id, // 🔥 FIX
+    cashAmount: baseCash,
+    bankAmount: baseBank,
+    splitCash: finalCash,
+    gpayAmount: finalGpay,
+    paymentType,
+  })
+);
 
     if (res.meta.requestStatus === "fulfilled") {
       setSelectedService(null);
@@ -165,7 +163,7 @@ const FormPage = () => {
                 ))}
               </select>
 
-              {/* Cash Input */}
+              {/* Cash */}
               {selectedService?.hasCash && (
                 <input
                   type="number"
@@ -176,7 +174,7 @@ const FormPage = () => {
                 />
               )}
 
-              {/* Bank Input */}
+              {/* Bank */}
               {selectedService?.hasBank && (
                 <input
                   type="number"
@@ -192,17 +190,12 @@ const FormPage = () => {
                 <label className="font-medium">Payment Type</label>
 
                 <div className="flex gap-4 mt-1">
-
                   <label>
                     <input
                       type="radio"
                       value="cash"
                       checked={paymentType === "cash"}
-                      onChange={(e) => {
-                        setPaymentType(e.target.value);
-                        setSplitCash("");
-                        setSplitGpay("");
-                      }}
+                      onChange={(e) => setPaymentType(e.target.value)}
                     /> Cash
                   </label>
 
@@ -211,11 +204,7 @@ const FormPage = () => {
                       type="radio"
                       value="gpay"
                       checked={paymentType === "gpay"}
-                      onChange={(e) => {
-                        setPaymentType(e.target.value);
-                        setSplitCash("");
-                        setSplitGpay("");
-                      }}
+                      onChange={(e) => setPaymentType(e.target.value)}
                     /> GPay
                   </label>
 
@@ -227,7 +216,6 @@ const FormPage = () => {
                       onChange={(e) => setPaymentType(e.target.value)}
                     /> Cash + GPay
                   </label>
-
                 </div>
               </div>
 
