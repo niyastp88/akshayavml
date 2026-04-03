@@ -1,185 +1,265 @@
 import React, { useEffect, useState } from "react";
-import API from "../api/api";
-import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchServices } from "../redux/slices/serviceSlice";
+import { addTransaction } from "../redux/slices/transactionSlice";
+import { logout } from "../redux/slices/authSlice";
+import { useNavigate } from "react-router-dom";
 
 const FormPage = () => {
-  const [services, setServices] = useState([]);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const { data: services, loading: fetchLoading } = useSelector(
+    (state) => state.services
+  );
+
+  const { loading, error } = useSelector(
+    (state) => state.transactions
+  );
+
+  const { user } = useSelector((state) => state.auth);
+
+  // 🔹 states
   const [selectedService, setSelectedService] = useState(null);
 
-  const [bankAmount, setBankAmount] = useState("");
+  // service input
   const [cashAmount, setCashAmount] = useState("");
+  const [bankAmount, setBankAmount] = useState("");
 
-  const [loading, setLoading] = useState(false);
-  const [fetchLoading, setFetchLoading] = useState(true);
-  const [error, setError] = useState("");
+  // payment type
+  const [paymentType, setPaymentType] = useState("");
 
-  // Fetch services
+  // split values
+  const [splitCash, setSplitCash] = useState("");
+  const [splitGpay, setSplitGpay] = useState("");
+
   useEffect(() => {
-    const fetchServices = async () => {
-      try {
-        const res = await API.get("/services");
-        setServices(res.data);
-      } catch (err) {
-        setError("Failed to load services");
-      } finally {
-        setFetchLoading(false);
-      }
-    };
+    dispatch(fetchServices());
+  }, [dispatch]);
 
-    fetchServices();
-  }, []);
-
-  const handleServiceChange = (e) => {
-    const service = services.find((s) => s._id === e.target.value);
-    setSelectedService(service);
-    setBankAmount("");
-    setCashAmount("");
-  };
-
+  // 🔥 SUBMIT
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!selectedService) return;
+    if (!selectedService || !paymentType) {
+      alert("Select service & payment type");
+      return;
+    }
 
-    const bank = Number(bankAmount) || 0;
-    const cash = Number(cashAmount) || 0;
-    const total = bank + cash;
+    const baseCash = Number(cashAmount) || 0;
+    const baseBank = Number(bankAmount) || 0;
+
+    const total = baseCash + baseBank;
+
+    if (total === 0) {
+      alert("Enter amount");
+      return;
+    }
+
+    let finalSplitCash = 0;
+    let finalGpay = 0;
+
+    if (paymentType === "cash") {
+      finalSplitCash = total;
+    } else if (paymentType === "gpay") {
+      finalGpay = total;
+    } else {
+      const c = Number(splitCash) || 0;
+      const g = Number(splitGpay) || 0;
+
+      if (c + g !== total) {
+        alert("Split must equal total");
+        return;
+      }
+
+      finalSplitCash = c;
+      finalGpay = g;
+    }
 
     const confirm = window.confirm(
-      `Total received amount is ${total}. Do you want to continue?`
+      `Total received amount is ${total}. Continue?`
     );
 
     if (!confirm) return;
 
-    try {
-      setLoading(true);
-      setError("");
-
-      await API.post("/transactions", {
+    const res = await dispatch(
+      addTransaction({
         serviceName: selectedService.name,
-        bankAmount: bank,
-        cashAmount: cash,
-      });
+        cashAmount: baseCash,
+        bankAmount: baseBank,
+        splitCash: finalSplitCash,
+        gpayAmount: finalGpay,
+        paymentType,
+      })
+    );
 
-      // reset
+    if (res.meta.requestStatus === "fulfilled") {
       setSelectedService(null);
-      setBankAmount("");
       setCashAmount("");
-    } catch (err) {
-      setError("Something went wrong. Try again.");
-    } finally {
-      setLoading(false);
+      setBankAmount("");
+      setPaymentType("");
+      setSplitCash("");
+      setSplitGpay("");
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-white to-blue-100 flex items-center justify-center px-4">
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/login");
+  };
 
-      {/* Main Container */}
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-white flex items-center justify-center p-4">
+
       <div className="w-full max-w-lg">
 
-        {/* Top Bar */}
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-lg sm:text-xl font-semibold text-gray-700">
-            Akshaya Service
-          </h1>
+        {/* Header */}
+        <div className="flex justify-between mb-4">
+          <h2 className="font-semibold">Welcome {user?.name}</h2>
 
-          <Link
-            to="/admin"
-            className="text-sm bg-indigo-600 text-white px-3 py-1.5 rounded-md hover:bg-indigo-700 transition"
+          <button
+            onClick={handleLogout}
+            className="bg-red-500 text-white px-3 py-1 rounded"
           >
-            Admin
-          </Link>
+            Logout
+          </button>
         </div>
 
         {/* Card */}
-        <div className="bg-white/80 backdrop-blur-lg border border-gray-200 shadow-xl rounded-2xl p-6 sm:p-8">
+        <div className="bg-white p-6 rounded-xl shadow">
 
-          <h2 className="text-2xl font-bold text-gray-800 text-center mb-6">
+          <h2 className="text-xl font-bold mb-4 text-center">
             Add Transaction
           </h2>
 
-          {error && (
-            <p className="text-red-500 text-sm text-center mb-3">
-              {error}
-            </p>
-          )}
+          {error && <p className="text-red-500 mb-2">{error}</p>}
 
           {fetchLoading ? (
-            <p className="text-center text-gray-500">
-              Loading services...
-            </p>
+            <p>Loading services...</p>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-4">
 
-              {/* Service Select */}
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Service
-                </label>
-                <select
-                  value={selectedService?._id || ""}
-                  onChange={handleServiceChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 outline-none transition"
-                >
-                  <option value="">Select a service</option>
-                  {services.map((s) => (
-                    <option key={s._id} value={s._id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* Service */}
+              <select
+                value={selectedService?._id || ""}
+                onChange={(e) => {
+                  const s = services.find(
+                    (x) => x._id === e.target.value
+                  );
+                  setSelectedService(s);
 
-              {/* Bank */}
-              {selectedService?.hasBank && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    Bank Amount
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="Enter bank amount"
-                    value={bankAmount}
-                    onChange={(e) => setBankAmount(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-green-500 outline-none transition"
-                  />
-                </div>
+                  setCashAmount("");
+                  setBankAmount("");
+                  setPaymentType("");
+                  setSplitCash("");
+                  setSplitGpay("");
+                }}
+                className="w-full border p-2 rounded"
+              >
+                <option value="">Select Service</option>
+
+                {services.map((s) => (
+                  <option key={s._id} value={s._id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+
+              {/* Cash Input */}
+              {selectedService?.hasCash && (
+                <input
+                  type="number"
+                  placeholder="Cash Amount"
+                  value={cashAmount}
+                  onChange={(e) => setCashAmount(e.target.value)}
+                  className="w-full border p-2 rounded"
+                />
               )}
 
-              {/* Cash */}
-              {selectedService?.hasCash && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    Cash Amount
+              {/* Bank Input */}
+              {selectedService?.hasBank && (
+                <input
+                  type="number"
+                  placeholder="Bank Amount"
+                  value={bankAmount}
+                  onChange={(e) => setBankAmount(e.target.value)}
+                  className="w-full border p-2 rounded"
+                />
+              )}
+
+              {/* Payment Type */}
+              <div>
+                <label className="font-medium">Payment Type</label>
+
+                <div className="flex gap-4 mt-1">
+
+                  <label>
+                    <input
+                      type="radio"
+                      value="cash"
+                      checked={paymentType === "cash"}
+                      onChange={(e) => {
+                        setPaymentType(e.target.value);
+                        setSplitCash("");
+                        setSplitGpay("");
+                      }}
+                    /> Cash
                   </label>
+
+                  <label>
+                    <input
+                      type="radio"
+                      value="gpay"
+                      checked={paymentType === "gpay"}
+                      onChange={(e) => {
+                        setPaymentType(e.target.value);
+                        setSplitCash("");
+                        setSplitGpay("");
+                      }}
+                    /> GPay
+                  </label>
+
+                  <label>
+                    <input
+                      type="radio"
+                      value="both"
+                      checked={paymentType === "both"}
+                      onChange={(e) => setPaymentType(e.target.value)}
+                    /> Cash + GPay
+                  </label>
+
+                </div>
+              </div>
+
+              {/* Split Inputs */}
+              {paymentType === "both" && (
+                <div className="grid grid-cols-2 gap-2">
                   <input
                     type="number"
-                    placeholder="Enter cash amount"
-                    value={cashAmount}
-                    onChange={(e) => setCashAmount(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-yellow-500 outline-none transition"
+                    placeholder="Split Cash"
+                    value={splitCash}
+                    onChange={(e) => setSplitCash(e.target.value)}
+                    className="border p-2 rounded"
+                  />
+
+                  <input
+                    type="number"
+                    placeholder="Split GPay"
+                    value={splitGpay}
+                    onChange={(e) => setSplitGpay(e.target.value)}
+                    className="border p-2 rounded"
                   />
                 </div>
               )}
 
               {/* Submit */}
-              <button
-                disabled={loading}
-                className="w-full bg-indigo-600 text-white py-2.5 rounded-lg font-semibold shadow hover:bg-indigo-700 transition duration-200"
-              >
-                {loading ? "Submitting..." : "Submit Transaction"}
+              <button className="w-full bg-indigo-600 text-white py-2 rounded">
+                {loading ? "Submitting..." : "Submit"}
               </button>
 
             </form>
           )}
         </div>
-
-        {/* Footer */}
-        <p className="text-center text-xs text-gray-400 mt-4">
-          Simple Accounting System
-        </p>
-
       </div>
     </div>
   );

@@ -1,167 +1,162 @@
 import React, { useEffect, useState } from "react";
-import API from "../api/api";
-import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchReport } from "../redux/slices/reportSlice";
+import { logout } from "../redux/slices/authSlice";
+import { useNavigate } from "react-router-dom";
 
 const AdminPage = () => {
-  const [data, setData] = useState([]);
-  const [date, setDate] = useState("");
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const { data, totals, loading, error } = useSelector(
+    (state) => state.report
+  );
 
-  const fetchReport = async () => {
-    try {
-      setLoading(true);
-      setError("");
+  const { user } = useSelector((state) => state.auth);
 
-      const res = await API.get(`/reports?date=${date}`);
-      setData(res.data.data);
-    } catch (err) {
-      setError("Failed to load report");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const today = new Date().toISOString().split("T")[0];
+
+  const [from, setFrom] = useState(today);
+  const [to, setTo] = useState(today);
 
   useEffect(() => {
-    fetchReport();
-  }, [date]);
+    dispatch(fetchReport({ from, to }));
+  }, [from, to]);
 
-  // 🔥 Excel Export (CSV)
-  const exportToCSV = () => {
-    if (data.length === 0) return;
-
-    const headers = [
-      "Service",
-      "Cash In",
-      "Out",
-      "Cash Balance",
-      "Debit",
-      "Credit",
-      "Bank Balance",
-    ];
-
-    const rows = data.map((row) => [
-      row.serviceName,
-      row.cashIn,
-      "",
-      row.cashBalance,
-      row.bankDebit,
-      "",
-      row.bankBalance,
-    ]);
-
-    let csvContent =
-      "data:text/csv;charset=utf-8," +
-      [headers, ...rows].map((e) => e.join(",")).join("\n");
-
-    const link = document.createElement("a");
-    link.href = encodeURI(csvContent);
-    link.download = "report.csv";
-    link.click();
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/login");
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-screen bg-gray-100 p-4">
 
-      {/* 🔝 Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">
-          Admin Report
+      {/* Header */}
+      <div className="flex justify-between mb-3">
+        <h2 className="font-semibold">
+          Admin - {user?.name}
         </h2>
 
-        <div className="flex gap-3">
+        <div className="flex gap-2">
+
           <button
-            onClick={exportToCSV}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+            onClick={() => navigate("/create-staff")}
+            className="bg-indigo-600 text-white px-2 py-1 rounded text-sm"
           >
-            Export Excel
+            + Staff
           </button>
 
-          <Link
-            to="/"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          <button
+            onClick={() => navigate("/create-service")}
+            className="bg-green-600 text-white px-2 py-1 rounded text-sm"
           >
-            Back
-          </Link>
+            + Service
+          </button>
+
+          <button
+            onClick={handleLogout}
+            className="bg-red-500 text-white px-2 py-1 rounded text-sm"
+          >
+            Logout
+          </button>
+
         </div>
       </div>
 
-      {/* 📅 Date Filter */}
-      <div className="mb-4">
+      {/* Totals */}
+      <div className="flex gap-3 mb-3 text-sm font-semibold">
+        <div className="bg-green-100 px-3 py-1 rounded">
+          Cash: {totals?.cash || 0}
+        </div>
+
+        <div className="bg-blue-100 px-3 py-1 rounded">
+          GPay: {totals?.gpay || 0}
+        </div>
+
+        <div className="bg-gray-200 px-3 py-1 rounded">
+          Total: {totals?.total || 0}
+        </div>
+      </div>
+
+      {/* Date Filter */}
+      <div className="flex gap-2 mb-3">
         <input
           type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="border px-4 py-2 rounded-lg shadow-sm"
+          value={from}
+          onChange={(e) => setFrom(e.target.value)}
+          className="border p-1"
+        />
+
+        <input
+          type="date"
+          value={to}
+          onChange={(e) => setTo(e.target.value)}
+          className="border p-1"
         />
       </div>
 
-      {/* 🔄 States */}
-      {loading && (
-        <p className="text-blue-600 font-medium">Loading...</p>
-      )}
+      {loading && <p>Loading...</p>}
+      {error && <p className="text-red-500">{error}</p>}
 
-      {error && (
-        <p className="text-red-500 font-medium">{error}</p>
-      )}
+      {/* Table */}
+      {!loading && data?.length > 0 && (
+        <div className="overflow-x-auto bg-white shadow rounded">
 
-      {!loading && data.length === 0 && (
-        <p className="text-gray-500">No data found</p>
-      )}
+          <table className="w-full border text-sm">
 
-      {/* 📊 Table */}
-      {!loading && data.length > 0 && (
-        <div className="overflow-x-auto bg-white rounded-xl shadow">
-          <table className="w-full text-sm text-left border-collapse">
-
-            <thead className="bg-gray-200 text-gray-700 uppercase text-xs">
+            <thead className="bg-gray-200">
               <tr>
-                <th className="px-4 py-3 font-bold">Service</th>
-                <th className="px-4 py-3 font-bold">Cash In</th>
-                <th className="px-4 py-3 font-bold">Out</th>
-                <th className="px-4 py-3 font-bold">Cash Balance</th>
-                <th className="px-4 py-3 font-bold">Debit</th>
-                <th className="px-4 py-3 font-bold">Credit</th>
-                <th className="px-4 py-3 font-bold">Bank Balance</th>
+                <th className="border p-2">Date</th>
+                <th className="border p-2">Service</th>
+                <th className="border p-2">In</th>
+                <th className="border p-2">Out</th>
+                <th className="border p-2">Cash Balance</th>
+                <th className="border p-2">Debit</th>
+                <th className="border p-2">Credit</th>
+                <th className="border p-2">Bank Balance</th>
               </tr>
             </thead>
 
             <tbody>
               {data.map((row, i) => (
-                <tr
-                  key={i}
-                  className="border-b hover:bg-gray-50 transition"
-                >
-                  <td className="px-4 py-3 font-medium">
+                <tr key={i} className="hover:bg-gray-50">
+
+                  <td className="border p-2">{row.date}</td>
+
+                  <td className="border p-2">
                     {row.serviceName}
                   </td>
 
-                  <td className="px-4 py-3 text-green-600 font-semibold">
-                    {row.cashIn}
+                  <td className="border p-2 text-green-600 font-semibold">
+                    {row.in}
                   </td>
 
-                  <td className="px-4 py-3 text-gray-400">-</td>
+                  <td className="border p-2">-</td>
 
-                  <td className="px-4 py-3 font-semibold">
+                  <td className="border p-2">
                     {row.cashBalance}
                   </td>
 
-                  <td className="px-4 py-3 text-red-600 font-semibold">
-                    {row.bankDebit}
+                  <td className="border p-2 text-red-600">
+                    {row.debit}
                   </td>
 
-                  <td className="px-4 py-3 text-gray-400">-</td>
+                  <td className="border p-2">-</td>
 
-                  <td className="px-4 py-3 font-semibold">
+                  <td className="border p-2">
                     {row.bankBalance}
                   </td>
+
                 </tr>
               ))}
             </tbody>
 
           </table>
         </div>
+      )}
+
+      {!loading && data?.length === 0 && (
+        <p className="text-gray-500">No data found</p>
       )}
     </div>
   );
