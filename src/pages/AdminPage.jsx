@@ -7,9 +7,9 @@ import autoTable from "jspdf-autotable";
 const AdminPage = () => {
   const dispatch = useDispatch();
 
-  const { data, loading, error } = useSelector(
-    (state) => state.report
-  );
+  const { data, totals, loading, error } = useSelector(
+  (state) => state.report
+);
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -150,6 +150,22 @@ const AdminPage = () => {
       {error && (
         <p className="text-red-500 font-medium">{error}</p>
       )}
+
+      <div className="flex flex-wrap gap-3 mb-4">
+
+  <div className="bg-green-100 px-4 py-2 rounded font-semibold">
+    Cash: ₹{totals?.cash || 0}
+  </div>
+
+  <div className="bg-blue-100 px-4 py-2 rounded font-semibold">
+    GPay: ₹{totals?.gpay || 0}
+  </div>
+
+  <div className="bg-yellow-100 px-4 py-2 rounded font-semibold">
+    Profit: ₹{totals?.profit || 0}
+  </div>
+
+</div>
 
       {/* Table */}
       {!loading && data?.length > 0 && (

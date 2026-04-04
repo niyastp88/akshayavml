@@ -44,11 +44,11 @@ const AdminLayout = () => {
             Set Balance
           </Link>
 
-          <button onClick={() => navigate("/admin/create-expense")}>
+          <button className="px-3 py-1 bg-green-600 text-white rounded" onClick={() => navigate("/admin/create-expense")}>
   Expense Types
 </button>
 
-<button onClick={() => navigate("/admin/create-balance-type")}>
+<button className="px-3 py-1 bg-blue-600 text-white rounded" onClick={() => navigate("/admin/create-balance-type")}>
   Balance Types
 </button>
 
