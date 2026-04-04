@@ -25,7 +25,7 @@ const AdminLayout = () => {
 
         <div className="flex flex-wrap gap-2 text-sm">
 
-          <Link to="/admin/report" className="px-3 py-1 bg-indigo-600 text-white rounded">
+          <Link to="/admin/report" className="px-3 py-1 bg-indigo-600 hover:bg-indigo-800 text-white rounded transition duration-300">
             Report
           </Link>
           <Link to="/admin/staff-report" className="bg-purple-600 text-white px-3 py-1 rounded">
@@ -43,6 +43,14 @@ const AdminLayout = () => {
           <Link to="/admin/balance" className="px-3 py-1 bg-yellow-600 text-white rounded">
             Set Balance
           </Link>
+
+          <button onClick={() => navigate("/admin/create-expense")}>
+  Expense Types
+</button>
+
+<button onClick={() => navigate("/admin/create-balance-type")}>
+  Balance Types
+</button>
 
           <button
             onClick={handleLogout}

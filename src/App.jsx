@@ -10,6 +10,10 @@ import BalancePage from "./pages/OpeingBalancePage";
 import StaffLayout from "./pages/StaffLayout";
 import MyTransactionsPage from "./pages/MyTransactionsPage";
 import StaffReportPage from "./pages/StaffReportPage";
+import AddExpensePage from "./pages/AddExpensePage";
+import AddBalancePage from "./pages/AddBalancePage";
+import CreateExpensePage from "./pages/CreateExpensePage";
+import CreateBalanceTypePage from "./pages/CreateBalanceTypePage";
 
 function App() {
   return (
@@ -23,6 +27,8 @@ function App() {
 
   <Route path="add" element={<FormPage />} />
   <Route path="my-transactions" element={<MyTransactionsPage />} />
+  <Route path="add-expense" element={<AddExpensePage />} />
+<Route path="add-balance" element={<AddBalancePage />} />
 
 </Route>
 
@@ -34,6 +40,8 @@ function App() {
           <Route path="staff-report" element={<StaffReportPage />} />
           <Route path="create-service" element={<CreateServicePage />} />
           <Route path="balance" element={<BalancePage />} />
+          <Route path="create-expense" element={<CreateExpensePage />} />
+<Route path="create-balance-type" element={<CreateBalanceTypePage />} />
 
         </Route>
 

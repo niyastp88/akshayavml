@@ -39,6 +39,9 @@ const StaffLayout = () => {
             My Transactions
           </Link>
 
+          <button onClick={() => navigate("/staff/add-expense")}>Add Expense</button>
+<button onClick={() => navigate("/staff/add-balance")}>Add Balance</button>
+
           <button
             onClick={handleLogout}
             className="bg-red-500 text-white px-3 py-1 rounded"
