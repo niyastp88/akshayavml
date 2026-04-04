@@ -18,7 +18,7 @@ const LoginPage = () => {
     if (res.meta.requestStatus === "fulfilled") {
       const role = res.payload.user.role;
       role === "admin"
-  ? navigate("/admin/report")
+  ? navigate("/admin")
   : navigate("/staff/add");
     }
   };

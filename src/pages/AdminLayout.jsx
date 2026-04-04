@@ -25,6 +25,10 @@ const AdminLayout = () => {
 
         <div className="flex flex-wrap gap-2 text-sm">
 
+          <Link to="/admin" className="px-3 py-1 bg-green-600 text-white rounded">
+            Dashboard
+          </Link>
+
           <Link to="/admin/report" className="px-3 py-1 bg-indigo-600 hover:bg-indigo-800 text-white rounded transition duration-300">
             Report
           </Link>

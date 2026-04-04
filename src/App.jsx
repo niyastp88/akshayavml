@@ -14,6 +14,7 @@ import AddExpensePage from "./pages/AddExpensePage";
 import AddBalancePage from "./pages/AddBalancePage";
 import CreateExpensePage from "./pages/CreateExpensePage";
 import CreateBalanceTypePage from "./pages/CreateBalanceTypePage";
+import DashboardPage from "./pages/Dashboard";
 
 function App() {
   return (
@@ -34,6 +35,8 @@ function App() {
 
         {/* 🔥 Admin Layout */}
         <Route path="/admin" element={<AdminLayout />}>
+
+        <Route index element={<DashboardPage />} />
 
           <Route path="report" element={<AdminPage />} />
           <Route path="create-staff" element={<CreateStaffPage />} />
