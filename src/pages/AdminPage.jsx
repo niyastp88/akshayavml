@@ -8,8 +8,8 @@ const AdminPage = () => {
   const dispatch = useDispatch();
 
   const { data, totals, loading, error } = useSelector(
-  (state) => state.report
-);
+    (state) => state.report
+  );
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -20,32 +20,17 @@ const AdminPage = () => {
     dispatch(fetchReport({ from, to }));
   }, [dispatch, from, to]);
 
-  // 🔥 EXCEL DOWNLOAD (CSV)
+  // 🔥 EXCEL
   const exportExcel = () => {
     if (!data.length) return;
 
     const headers = [
-      "Date",
-      "Service",
-      "In",
-      "Out",
-      "Cash",
-      "SBI Current",
-      "SBI Savings",
-      "Edistrict",
-      "PSA",
+      "Date","Service","In","Out","Cash","SBI Current","SBI Savings","Edistrict","PSA",
     ];
 
     const rows = data.map((r) => [
-      r.date,
-      r.serviceName,
-      r.in,
-      r.out || 0,
-      r.cashBalance,
-      r.sbiCurrent,
-      r.sbiSavings,
-      r.edistrict,
-      r.psa,
+      r.date, r.serviceName, r.in, r.out || 0,
+      r.cashBalance, r.sbiCurrent, r.sbiSavings, r.edistrict, r.psa,
     ]);
 
     const csv =
@@ -58,37 +43,21 @@ const AdminPage = () => {
     link.click();
   };
 
-  // 🔥 PDF DOWNLOAD
+  // 🔥 PDF
   const exportPDF = () => {
     if (!data.length) return;
 
     const doc = new jsPDF();
-
     doc.text("Akshaya Report", 14, 10);
 
     const tableData = data.map((r) => [
-      r.date,
-      r.serviceName,
-      r.in,
-      r.out || 0,
-      r.cashBalance,
-      r.sbiCurrent,
-      r.sbiSavings,
-      r.edistrict,
-      r.psa,
+      r.date, r.serviceName, r.in, r.out || 0,
+      r.cashBalance, r.sbiCurrent, r.sbiSavings, r.edistrict, r.psa,
     ]);
 
     autoTable(doc, {
       head: [[
-        "Date",
-        "Service",
-        "In",
-        "Out",
-        "Cash",
-        "SBI Current",
-        "SBI Savings",
-        "Edistrict",
-        "PSA",
+        "Date","Service","In","Out","Cash","SBI Current","SBI Savings","Edistrict","PSA",
       ]],
       body: tableData,
       startY: 20,
@@ -101,7 +70,7 @@ const AdminPage = () => {
   return (
     <div className="p-4 sm:p-6">
 
-      {/* Header */}
+      {/* HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
 
         <h2 className="text-2xl font-bold text-gray-800">
@@ -110,70 +79,67 @@ const AdminPage = () => {
 
         <div className="flex flex-wrap gap-2">
 
-          <input
-            type="date"
-            value={from}
-            onChange={(e) => setFrom(e.target.value)}
-            className="border px-3 py-2 rounded-lg shadow-sm"
-          />
+          <input type="date" value={from} onChange={(e)=>setFrom(e.target.value)}
+            className="border px-3 py-2 rounded-lg shadow-sm"/>
 
-          <input
-            type="date"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-            className="border px-3 py-2 rounded-lg shadow-sm"
-          />
+          <input type="date" value={to} onChange={(e)=>setTo(e.target.value)}
+            className="border px-3 py-2 rounded-lg shadow-sm"/>
 
-          <button
-            onClick={exportExcel}
-            className="bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700"
-          >
+          <button onClick={exportExcel}
+            className="bg-green-600 text-white px-3 py-2 rounded-lg">
             Excel
           </button>
 
-          <button
-            onClick={exportPDF}
-            className="bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700"
-          >
+          <button onClick={exportPDF}
+            className="bg-red-600 text-white px-3 py-2 rounded-lg">
             PDF
           </button>
 
         </div>
-
       </div>
 
-      {/* States */}
-      {loading && (
-        <p className="text-blue-500 font-medium">Loading...</p>
-      )}
-
+      {/* 🔥 ERROR */}
       {error && (
-        <p className="text-red-500 font-medium">{error}</p>
+        <div className="bg-red-100 text-red-600 p-4 rounded-lg mb-4">
+          ⚠️ {error}
+        </div>
       )}
 
-      <div className="flex flex-wrap gap-3 mb-4">
+      {/* 🔥 TOTALS */}
+      {!loading && !error && (
+        <div className="flex flex-wrap gap-3 mb-4">
 
-  <div className="bg-green-100 px-4 py-2 rounded font-semibold">
-    Cash: ₹{totals?.cash || 0}
-  </div>
+          <div className="bg-green-100 px-4 py-2 rounded font-semibold">
+            Cash: ₹{totals?.cash || 0}
+          </div>
 
-  <div className="bg-blue-100 px-4 py-2 rounded font-semibold">
-    GPay: ₹{totals?.gpay || 0}
-  </div>
+          <div className="bg-blue-100 px-4 py-2 rounded font-semibold">
+            GPay: ₹{totals?.gpay || 0}
+          </div>
 
-  <div className="bg-yellow-100 px-4 py-2 rounded font-semibold">
-    Profit: ₹{totals?.profit || 0}
-  </div>
+          <div className="bg-yellow-100 px-4 py-2 rounded font-semibold">
+            Profit: ₹{totals?.profit || 0}
+          </div>
 
-</div>
+        </div>
+      )}
 
-      {/* Table */}
-      {!loading && data?.length > 0 && (
+      {/* 🔥 LOADING SHIMMER */}
+      {loading && (
+        <div className="bg-white rounded-xl shadow p-4 space-y-3">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="h-6 bg-gray-300 rounded animate-pulse"></div>
+          ))}
+        </div>
+      )}
+
+      {/* 🔥 TABLE */}
+      {!loading && !error && data?.length > 0 && (
         <div className="overflow-x-auto bg-white shadow-xl rounded-2xl border">
 
-          <table className="min-w-full text-sm text-left">
+          <table className="min-w-full text-sm">
 
-            <thead className="bg-indigo-50 text-gray-700 uppercase text-xs">
+            <thead className="bg-indigo-50 text-gray-700 text-xs">
               <tr>
                 <th className="px-4 py-3 border">Date</th>
                 <th className="px-4 py-3 border">Service</th>
@@ -192,27 +158,13 @@ const AdminPage = () => {
                 <tr key={i} className="hover:bg-gray-50">
                   <td className="px-4 py-3 border">{row.date}</td>
                   <td className="px-4 py-3 border">{row.serviceName}</td>
-                  <td className="px-4 py-3 border text-right text-green-600">
-                    ₹{row.in}
-                  </td>
-                  <td className="px-4 py-3 border text-right text-red-500">
-                    ₹{row.out || 0}
-                  </td>
-                  <td className="px-4 py-3 border text-right">
-                    ₹{row.cashBalance}
-                  </td>
-                  <td className="px-4 py-3 border text-right">
-                    ₹{row.sbiCurrent}
-                  </td>
-                  <td className="px-4 py-3 border text-right">
-                    ₹{row.sbiSavings}
-                  </td>
-                  <td className="px-4 py-3 border text-right">
-                    ₹{row.edistrict}
-                  </td>
-                  <td className="px-4 py-3 border text-right">
-                    ₹{row.psa}
-                  </td>
+                  <td className="px-4 py-3 border text-right text-green-600">₹{row.in}</td>
+                  <td className="px-4 py-3 border text-right text-red-500">₹{row.out || 0}</td>
+                  <td className="px-4 py-3 border text-right">₹{row.cashBalance}</td>
+                  <td className="px-4 py-3 border text-right">₹{row.sbiCurrent}</td>
+                  <td className="px-4 py-3 border text-right">₹{row.sbiSavings}</td>
+                  <td className="px-4 py-3 border text-right">₹{row.edistrict}</td>
+                  <td className="px-4 py-3 border text-right">₹{row.psa}</td>
                 </tr>
               ))}
             </tbody>
@@ -221,9 +173,11 @@ const AdminPage = () => {
         </div>
       )}
 
-      {!loading && data?.length === 0 && (
+      {/* 🔥 EMPTY */}
+      {!loading && !error && data?.length === 0 && (
         <p className="text-gray-500">No data found</p>
       )}
+
     </div>
   );
 };

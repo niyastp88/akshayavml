@@ -113,7 +113,7 @@ const FormPage = () => {
 
         {/* Header */}
         <div className="flex justify-between mb-4">
-          <h2 className="font-semibold">Welcome {user?.name}</h2>
+          
 
           
         </div>

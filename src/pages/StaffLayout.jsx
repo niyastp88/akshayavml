@@ -1,6 +1,7 @@
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../redux/slices/authSlice";
+import { clearDashboard } from "../redux/slices/dashboardSlice";
 
 const StaffLayout = () => {
   const dispatch = useDispatch();
@@ -10,6 +11,7 @@ const StaffLayout = () => {
 
   const handleLogout = () => {
     dispatch(logout());
+    dispatch(clearDashboard());
     navigate("/");
   };
 
@@ -24,6 +26,12 @@ const StaffLayout = () => {
         </h1>
 
         <div className="flex gap-2 text-sm">
+          <Link
+            to="/staff"
+            className="bg-pink-500 text-white px-3 py-1 rounded"
+          >
+            Dashboard
+          </Link>
 
           <Link
             to="/staff/add"
@@ -38,12 +46,15 @@ const StaffLayout = () => {
           >
             My Transactions
           </Link>
+          <button className="bg-orange-500 text-white px-3 py-1 rounded" onClick={() => navigate("/staff/add-expense")}>Add Expense</button>
           <Link
             to="/staff/my-expense"
             className="bg-indigo-600 text-white px-3 py-1 rounded"
           >
             Expense Report
           </Link>
+
+          <button className="bg-pink-600 text-white px-3 py-1 rounded" onClick={() => navigate("/staff/add-balance")}>Add Balance</button>
 
           <Link
             to="/staff/my-balance"
@@ -52,8 +63,8 @@ const StaffLayout = () => {
             Balance Report
           </Link>
 
-          <button className="bg-indigo-600 text-white px-3 py-1 rounded" onClick={() => navigate("/staff/add-expense")}>Add Expense</button>
-<button className="bg-green-600 text-white px-3 py-1 rounded" onClick={() => navigate("/staff/add-balance")}>Add Balance</button>
+          
+
 
           <button
             onClick={handleLogout}

@@ -19,7 +19,7 @@ const LoginPage = () => {
       const role = res.payload.user.role;
       role === "admin"
   ? navigate("/admin")
-  : navigate("/staff/add");
+  : navigate("/staff");
     }
   };
 

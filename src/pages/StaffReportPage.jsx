@@ -64,13 +64,29 @@ const StaffReportPage = () => {
   const handleEdit = async (t) => {
     const newCash = prompt("Enter cash amount", t.cashAmount);
     const newBank = prompt("Enter bank amount", t.bankAmount);
+    const newSplitCash = prompt("Enter split cash", t.splitCash || 0);
+    const newGpay = prompt("Enter GPay amount", t.gpayAmount || 0);
+    const newType = prompt(
+      "Enter payment type (cash / gpay / both)",
+      t.paymentType || "cash"
+    );
 
-    if (newCash === null || newBank === null) return;
+    if (
+      newCash === null ||
+      newBank === null ||
+      newSplitCash === null ||
+      newGpay === null ||
+      newType === null
+    )
+      return;
 
     try {
       await API.put(`/transactions/${t._id}`, {
         cashAmount: Number(newCash),
         bankAmount: Number(newBank),
+        splitCash: Number(newSplitCash),
+        gpayAmount: Number(newGpay),
+        paymentType: newType,
       });
 
       fetchData();
@@ -144,49 +160,79 @@ const StaffReportPage = () => {
             <thead className="bg-gray-200 text-gray-700">
               <tr>
                 <th className="p-3 border">Service</th>
-                <th className="p-3 border">Cash</th>
-                <th className="p-3 border">Bank</th>
+                <th className="p-3 border">Time</th> {/* 🔥 NEW */}
+                <th className="p-3 border">Payment</th>
+                <th className="p-3 border text-right">Cash</th>
+                <th className="p-3 border text-right">Bank</th>
+                <th className="p-3 border text-right">Received Cash</th>
+                <th className="p-3 border text-right">Received GPay</th>
                 <th className="p-3 border text-center">Action</th>
               </tr>
             </thead>
 
             <tbody>
-              {data.map((t) => (
-                <tr
-                  key={t._id}
-                  className="hover:bg-gray-50 transition"
-                >
-                  <td className="p-3 border font-medium">
-                    {t.serviceName}
-                  </td>
+              {data.map((t) => {
+                const d = new Date(t.date);
 
-                  <td className="p-3 border text-green-600 font-semibold">
-                    ₹{t.cashAmount}
-                  </td>
+                const time = d.toLocaleTimeString("en-IN", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                });
 
-                  <td className="p-3 border text-blue-600 font-semibold">
-                    ₹{t.bankAmount || 0}
-                  </td>
+                return (
+                  <tr key={t._id} className="hover:bg-gray-50 transition">
 
-                  <td className="p-3 border text-center space-x-2">
+                    <td className="p-3 border font-medium">
+                      {t.serviceName}
+                    </td>
 
-                    <button
-                      onClick={() => handleEdit(t)}
-                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
-                    >
-                      Edit
-                    </button>
+                    {/* 🔥 TIME */}
+                    <td className="p-3 border text-gray-600 font-medium">
+                      {time}
+                    </td>
 
-                    <button
-                      onClick={() => handleDelete(t._id)}
-                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
-                    >
-                      Delete
-                    </button>
+                    <td className="p-3 border text-purple-600 font-semibold capitalize">
+                      {t.paymentType || "-"}
+                    </td>
 
-                  </td>
-                </tr>
-              ))}
+                    <td className="p-3 border text-green-600 font-semibold text-right">
+                      ₹{t.cashAmount}
+                    </td>
+
+                    <td className="p-3 border text-blue-600 font-semibold text-right">
+                      ₹{t.bankAmount || 0}
+                    </td>
+
+                    <td className="p-3 border text-orange-500 font-semibold text-right">
+                      ₹{t.splitCash || 0}
+                    </td>
+
+                    <td className="p-3 border text-indigo-600 font-semibold text-right">
+                      ₹{t.gpayAmount || 0}
+                    </td>
+
+                    <td className="p-3 border text-center space-x-2">
+
+                      <button
+                        onClick={() => handleEdit(t)}
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        onClick={() => handleDelete(t._id)}
+                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                      >
+                        Delete
+                      </button>
+
+                    </td>
+
+                  </tr>
+                );
+              })}
             </tbody>
 
           </table>

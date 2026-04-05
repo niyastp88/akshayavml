@@ -1,6 +1,7 @@
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../redux/slices/authSlice";
+import { clearDashboard } from "../redux/slices/dashboardSlice";
 
 const AdminLayout = () => {
   const dispatch = useDispatch();
@@ -10,6 +11,7 @@ const AdminLayout = () => {
 
   const handleLogout = () => {
     dispatch(logout());
+    dispatch(clearDashboard());
     navigate("/");
   };
 

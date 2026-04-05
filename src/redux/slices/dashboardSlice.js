@@ -13,11 +13,29 @@ export const fetchDashboard = createAsyncThunk(
   }
 );
 
+export const fetchStaffDashboard = createAsyncThunk(
+  "dashboard/staff",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await API.get("/dashboard/staff");
+      return res.data;
+    } catch {
+      return rejectWithValue("Failed");
+    }
+  }
+);
+
+
 const slice = createSlice({
   name: "dashboard",
   initialState: {
     data: {},
     loading: false,
+  },
+  reducers: {
+    clearDashboard: (state) => {
+      state.data = {};
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -27,8 +45,13 @@ const slice = createSlice({
       .addCase(fetchDashboard.fulfilled, (state, action) => {
         state.loading = false;
         state.data = action.payload;
+      })
+      .addCase(fetchStaffDashboard.fulfilled, (state, action) => {
+        state.loading = false;
+        state.data = action.payload;
       });
   },
 });
 
+export const { clearDashboard } = slice.actions;
 export default slice.reducer;

@@ -19,6 +19,7 @@ import MyExpensePage from "./pages/MyExpensePage";
 import MyBalancePage from "./pages/MyBalancePage";
 import AdminExpensePage from "./pages/AdminExpensePage";
 import AdminBalancePage from "./pages/AdminBalancePage";
+import StaffDashboard from "./pages/StaffDashboard";
 
 function App() {
   return (
@@ -29,6 +30,8 @@ function App() {
         <Route path="/" element={<LoginPage />} />
         
         <Route path="/staff" element={<StaffLayout />}>
+
+        <Route index element={<StaffDashboard />} />
 
   <Route path="add" element={<FormPage />} />
   <Route path="my-transactions" element={<MyTransactionsPage />} />
