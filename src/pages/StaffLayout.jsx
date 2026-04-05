@@ -52,8 +52,8 @@ const StaffLayout = () => {
             Balance Report
           </Link>
 
-          <button onClick={() => navigate("/staff/add-expense")}>Add Expense</button>
-<button onClick={() => navigate("/staff/add-balance")}>Add Balance</button>
+          <button className="bg-indigo-600 text-white px-3 py-1 rounded" onClick={() => navigate("/staff/add-expense")}>Add Expense</button>
+<button className="bg-green-600 text-white px-3 py-1 rounded" onClick={() => navigate("/staff/add-balance")}>Add Balance</button>
 
           <button
             onClick={handleLogout}

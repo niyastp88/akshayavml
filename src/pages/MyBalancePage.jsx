@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchMyBalance,
@@ -11,11 +11,14 @@ const MyBalancePage = () => {
   const { data } = useSelector((s) => s.balance);
 
   const today = new Date().toISOString().split("T")[0];
+  const [from, setFrom] = useState("");
+const [to, setTo] = useState("");
 
-  useEffect(() => {
-    dispatch(fetchMyBalance());
-  }, [dispatch]);
+useEffect(() => {
+  dispatch(fetchMyBalance({ from, to }));
+}, [dispatch, from, to]);
 
+ 
   const isToday = (d) =>
     new Date(d).toISOString().split("T")[0] === today;
 
@@ -40,60 +43,52 @@ const MyBalancePage = () => {
 
       <div className="overflow-x-auto bg-white rounded-xl shadow-lg">
 
+        <div className="flex gap-2 mb-4">
+  <input type="date" value={from} onChange={(e)=>setFrom(e.target.value)} className="border p-2 rounded" />
+  <input type="date" value={to} onChange={(e)=>setTo(e.target.value)} className="border p-2 rounded" />
+</div>
+
         <table className="min-w-full text-sm">
 
           {/* HEADER */}
-          <thead className="bg-indigo-100 text-gray-700">
-            <tr>
-              <th className="px-4 py-3 text-left">Type</th>
-              <th className="px-4 py-3 text-right">Amount</th>
-              <th className="px-4 py-3 text-center">Action</th>
-            </tr>
-          </thead>
+          <thead className="bg-indigo-100">
+  <tr>
+    <th className="p-3 text-left">Date</th>
+    <th className="p-3 text-left">Type</th>
+    <th className="p-3 text-right">Amount</th>
+    <th className="p-3 text-center">Action</th>
+  </tr>
+</thead>
 
-          {/* BODY */}
-          <tbody>
-            {data.map((x) => (
-              <tr
-                key={x._id}
-                className="border-t hover:bg-gray-50 transition"
-              >
-                <td className="px-4 py-3 font-medium">
-                  {x.type}
-                </td>
+<tbody>
+  {data.map((x) => {
+    const d = new Date(x.date);
+    const formattedDate = `${String(d.getDate()).padStart(2,"0")}-${String(d.getMonth()+1).padStart(2,"0")}-${d.getFullYear()}`;
 
-                <td className="px-4 py-3 text-right text-blue-600 font-semibold">
-                  ₹{x.amount}
-                </td>
+    return (
+      <tr key={x._id} className="border-t hover:bg-gray-50">
 
-                <td className="px-4 py-3 text-center space-x-2">
+        <td className="p-3">{formattedDate}</td>
 
-                  {/* 🔥 ONLY TODAY EDIT/DELETE */}
-                  {isToday(x.date) && (
-                    <>
-                      <button
-                        onClick={() => handleEdit(x)}
-                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
-                      >
-                        Edit
-                      </button>
+        <td className="p-3">{x.type}</td>
 
-                      <button
-                        onClick={() =>
-                          dispatch(deleteBalance(x._id))
-                        }
-                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
-                      >
-                        Delete
-                      </button>
-                    </>
-                  )}
+        <td className="p-3 text-right text-blue-600 font-semibold">
+          ₹{x.amount}
+        </td>
 
-                </td>
+        <td className="p-3 text-center">
+          {isToday(x.date) && (
+            <>
+              <button onClick={()=>handleEdit(x)} className="bg-yellow-500 px-2 py-1 text-white rounded">Edit</button>
+              <button onClick={()=>dispatch(deleteBalance(x._id))} className="bg-red-500 px-2 py-1 text-white rounded">Delete</button>
+            </>
+          )}
+        </td>
 
-              </tr>
-            ))}
-          </tbody>
+      </tr>
+    );
+  })}
+</tbody>
 
         </table>
       </div>

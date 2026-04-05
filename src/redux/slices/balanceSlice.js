@@ -4,17 +4,20 @@ import API from "../../api/api";
 // 🔥 STAFF
 export const fetchMyBalance = createAsyncThunk(
   "balance/my",
-  async () => {
-    const res = await API.get("/balance-tx/my");
+  async ({ from, to }) => {
+    const res = await API.get(
+      `/balance-tx/my?from=${from}&to=${to}`
+    );
     return res.data;
   }
 );
 
-// 🔥 ADMIN
 export const fetchAllBalance = createAsyncThunk(
   "balance/all",
-  async () => {
-    const res = await API.get("/balance-tx/all");
+  async ({ from, to, staffId }) => {
+    const res = await API.get(
+      `/balance-tx/all?from=${from}&to=${to}&staffId=${staffId || ""}`
+    );
     return res.data;
   }
 );
