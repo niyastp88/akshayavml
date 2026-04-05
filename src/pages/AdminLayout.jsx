@@ -47,7 +47,7 @@ const AdminLayout = () => {
           </Link>
 
           <Link to="/admin/create-service" className="px-3 py-1 bg-blue-600 text-white rounded">
-            Add Service
+            Add Service Category
           </Link>
 
           <Link to="/admin/balance" className="px-3 py-1 bg-yellow-600 text-white rounded">
@@ -55,11 +55,11 @@ const AdminLayout = () => {
           </Link>
 
           <button className="px-3 py-1 bg-green-600 text-white rounded" onClick={() => navigate("/admin/create-expense")}>
-  Expense Types
+  Add Expense Category
 </button>
 
 <button className="px-3 py-1 bg-blue-600 text-white rounded" onClick={() => navigate("/admin/create-balance-type")}>
-  Balance Types
+  Add Balance Category
 </button>
 
           <button
