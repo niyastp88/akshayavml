@@ -1,11 +1,47 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import API from "../../api/api";
 
-export const fetchBalanceTypes = createAsyncThunk(
-  "balance/fetch",
+// 🔥 STAFF
+export const fetchMyBalance = createAsyncThunk(
+  "balance/my",
   async () => {
-    const res = await API.get("/add-balance");
+    const res = await API.get("/balance-tx/my");
     return res.data;
+  }
+);
+
+// 🔥 ADMIN
+export const fetchAllBalance = createAsyncThunk(
+  "balance/all",
+  async () => {
+    const res = await API.get("/balance-tx/all");
+    return res.data;
+  }
+);
+
+// 🔥 DELETE
+export const deleteBalance = createAsyncThunk(
+  "balance/delete",
+  async (id, { rejectWithValue }) => {
+    try {
+      await API.delete(`/balance-tx/${id}`);
+      return id;
+    } catch {
+      return rejectWithValue("Delete failed");
+    }
+  }
+);
+
+// 🔥 UPDATE
+export const updateBalance = createAsyncThunk(
+  "balance/update",
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      const res = await API.put(`/balance-tx/${id}`, data);
+      return res.data;
+    } catch {
+      return rejectWithValue("Update failed");
+    }
   }
 );
 
@@ -13,16 +49,26 @@ const balanceSlice = createSlice({
   name: "balance",
   initialState: {
     data: [],
-    loading: false,
   },
+  reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchBalanceTypes.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(fetchBalanceTypes.fulfilled, (state, action) => {
-        state.loading = false;
+      .addCase(fetchMyBalance.fulfilled, (state, action) => {
         state.data = action.payload;
+      })
+      .addCase(fetchAllBalance.fulfilled, (state, action) => {
+        state.data = action.payload;
+      })
+      .addCase(deleteBalance.fulfilled, (state, action) => {
+        state.data = state.data.filter(
+          (x) => x._id !== action.payload
+        );
+      })
+      .addCase(updateBalance.fulfilled, (state, action) => {
+        const i = state.data.findIndex(
+          (x) => x._id === action.payload._id
+        );
+        if (i !== -1) state.data[i] = action.payload;
       });
   },
 });

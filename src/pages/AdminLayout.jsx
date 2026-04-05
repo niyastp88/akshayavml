@@ -39,6 +39,12 @@ const AdminLayout = () => {
           <Link to="/admin/create-staff" className="px-3 py-1 bg-green-600 text-white rounded">
             Add Staff
           </Link>
+          <Link to="/admin/balance-tx" className="px-3 py-1 bg-yellow-600 text-white rounded">
+            Balance Report
+          </Link>
+          <Link to="/admin/expense" className="px-3 py-1 bg-indigo-600 hover:bg-indigo-800 text-white rounded transition duration-300">
+            Expense Report
+          </Link>
 
           <Link to="/admin/create-service" className="px-3 py-1 bg-blue-600 text-white rounded">
             Add Service

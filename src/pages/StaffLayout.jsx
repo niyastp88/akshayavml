@@ -38,6 +38,19 @@ const StaffLayout = () => {
           >
             My Transactions
           </Link>
+          <Link
+            to="/staff/my-expense"
+            className="bg-indigo-600 text-white px-3 py-1 rounded"
+          >
+            Expense Report
+          </Link>
+
+          <Link
+            to="/staff/my-balance"
+            className="bg-green-600 text-white px-3 py-1 rounded"
+          >
+            Balance Report
+          </Link>
 
           <button onClick={() => navigate("/staff/add-expense")}>Add Expense</button>
 <button onClick={() => navigate("/staff/add-balance")}>Add Balance</button>

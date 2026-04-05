@@ -15,6 +15,10 @@ import AddBalancePage from "./pages/AddBalancePage";
 import CreateExpensePage from "./pages/CreateExpensePage";
 import CreateBalanceTypePage from "./pages/CreateBalanceTypePage";
 import DashboardPage from "./pages/Dashboard";
+import MyExpensePage from "./pages/MyExpensePage";
+import MyBalancePage from "./pages/MyBalancePage";
+import AdminExpensePage from "./pages/AdminExpensePage";
+import AdminBalancePage from "./pages/AdminBalancePage";
 
 function App() {
   return (
@@ -30,6 +34,8 @@ function App() {
   <Route path="my-transactions" element={<MyTransactionsPage />} />
   <Route path="add-expense" element={<AddExpensePage />} />
 <Route path="add-balance" element={<AddBalancePage />} />
+<Route path="my-expense" element={<MyExpensePage />} />
+  <Route path="my-balance" element={<MyBalancePage />} />
 
 </Route>
 
@@ -45,6 +51,8 @@ function App() {
           <Route path="balance" element={<BalancePage />} />
           <Route path="create-expense" element={<CreateExpensePage />} />
 <Route path="create-balance-type" element={<CreateBalanceTypePage />} />
+<Route path="expense" element={<AdminExpensePage />} />
+  <Route path="balance-tx" element={<AdminBalancePage />} />
 
         </Route>
 
