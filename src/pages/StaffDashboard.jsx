@@ -12,6 +12,9 @@ const StaffDashboard = () => {
     dispatch(fetchStaffDashboard());
   }, [dispatch, user]);
 
+  const todayCash = data?.today?.cash || 0;
+  const todayGpay = data?.today?.gpay || 0;
+
   return (
     <div className="p-4 md:p-6 bg-gray-100 min-h-screen space-y-6">
 
@@ -28,24 +31,32 @@ const StaffDashboard = () => {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
 
-          <Card title="Today Cash" value={data?.today?.cash} color="bg-green-500" />
-          <Card title="Today GPay" value={data?.today?.gpay} color="bg-blue-500" />
+            <Card title="Today Cash" value={todayCash} color="bg-green-500" />
+            <Card title="Today GPay" value={todayGpay} color="bg-blue-500" />
 
-          <Card title="SBI Current" value={data?.balances?.sbiCurrent} color="bg-indigo-500" />
-          <Card title="SBI Savings" value={data?.balances?.sbiSavings} color="bg-pink-500" />
-          <Card title="Edistrict" value={data?.balances?.edistrict} color="bg-orange-500" />
-          <Card title="PSA" value={data?.balances?.psa} color="bg-teal-500" />
+            <Card title="SBI Current" value={data?.balances?.sbiCurrent} color="bg-indigo-500" />
+            <Card title="SBI Savings" value={data?.balances?.sbiSavings} color="bg-pink-500" />
+            <Card title="Edistrict" value={data?.balances?.edistrict} color="bg-orange-500" />
+            <Card title="PSA" value={data?.balances?.psa} color="bg-teal-500" />
 
-        </div>
+          </div>
+
+          {/* 🔥 IMPORTANT MESSAGE */}
+          <div className="bg-red-100 border border-red-300 text-red-700 p-4 rounded-xl shadow text-sm font-medium">
+            ഇന്ന് അക്ഷയയിൽ Cash = ₹{todayCash} , GPay = ₹{todayGpay} ഉണ്ടായിരിക്കേണ്ടതാണ്.
+            ഇല്ലെങ്കിൽ <span className="font-bold">My Transactions</span> ൽ പോയി edit ചെയ്യുക.
+          </div>
+        </>
       )}
 
     </div>
   );
 };
 
-// 🔥 REAL CARD
+// 🔥 CARD
 const Card = ({ title, value, color }) => (
   <div className={`${color} text-white p-4 rounded-xl shadow hover:scale-105 transition`}>
     <p className="text-sm opacity-90">{title}</p>
@@ -55,7 +66,7 @@ const Card = ({ title, value, color }) => (
   </div>
 );
 
-// 🔥 SHIMMER CARD
+// 🔥 SHIMMER
 const ShimmerCard = () => (
   <div className="p-4 rounded-xl bg-white shadow animate-pulse">
     <div className="h-4 w-24 bg-gray-300 rounded mb-3"></div>

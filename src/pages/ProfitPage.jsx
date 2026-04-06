@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchServices } from "../redux/slices/serviceSlice";
 import { addTransaction } from "../redux/slices/transactionSlice";
+import { logout } from "../redux/slices/authSlice";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
@@ -13,15 +14,16 @@ const FormPage = () => {
     (state) => state.services
   );
 
+  const { loading, error } = useSelector(
+    (state) => state.transactions
+  );
+
   const [selectedService, setSelectedService] = useState(null);
   const [cashAmount, setCashAmount] = useState("");
   const [bankAmount, setBankAmount] = useState("");
   const [paymentType, setPaymentType] = useState("");
   const [splitCash, setSplitCash] = useState("");
   const [splitGpay, setSplitGpay] = useState("");
-
-  // 🔥 LOCAL LOADING (IMPORTANT)
-  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     dispatch(fetchServices());
@@ -70,50 +72,34 @@ const FormPage = () => {
 
     if (!confirm) return;
 
-    try {
-      setSubmitting(true);
+    const res = await dispatch(
+      addTransaction({
+        serviceId: selectedService._id,
+        cashAmount: baseCash,
+        bankAmount: baseBank,
+        splitCash: finalCash,
+        gpayAmount: finalGpay,
+        paymentType,
+      })
+    );
 
-      const startTime = Date.now();
+    if (res.meta.requestStatus === "fulfilled") {
+      toast.success("Transaction Added ✅", {
+        style: {
+          background: "#22c55e",
+          color: "#fff",
+        },
+      });
 
-      const res = await dispatch(
-        addTransaction({
-          serviceId: selectedService._id,
-          cashAmount: baseCash,
-          bankAmount: baseBank,
-          splitCash: finalCash,
-          gpayAmount: finalGpay,
-          paymentType,
-        })
-      );
-
-      // 🔥 FORCE MINIMUM LOADING TIME
-      const elapsed = Date.now() - startTime;
-      const delay = Math.max(700 - elapsed, 0);
-      await new Promise((r) => setTimeout(r, delay));
-
-      if (res.meta.requestStatus === "fulfilled") {
-        toast.success("Transaction Added ✅", {
-          style: {
-            background: "#22c55e",
-            color: "#fff",
-          },
-        });
-
-        // reset
-        setSelectedService(null);
-        setCashAmount("");
-        setBankAmount("");
-        setPaymentType("");
-        setSplitCash("");
-        setSplitGpay("");
-      } else {
-        toast.error("Failed to add transaction");
-      }
-
-    } catch {
-      toast.error("Something went wrong");
-    } finally {
-      setSubmitting(false);
+      // reset
+      setSelectedService(null);
+      setCashAmount("");
+      setBankAmount("");
+      setPaymentType("");
+      setSplitCash("");
+      setSplitGpay("");
+    } else {
+      toast.error("Failed to add transaction");
     }
   };
 
@@ -141,7 +127,6 @@ const FormPage = () => {
                     (x) => x._id === e.target.value
                   );
                   setSelectedService(s);
-
                   setCashAmount("");
                   setBankAmount("");
                   setPaymentType("");
@@ -151,7 +136,6 @@ const FormPage = () => {
                 className="w-full border p-2 rounded"
               >
                 <option value="">Select Service</option>
-
                 {services.map((s) => (
                   <option key={s._id} value={s._id}>
                     {s.name}
@@ -181,19 +165,19 @@ const FormPage = () => {
                 />
               )}
 
-              {/* Payment */}
+              {/* Payment Type */}
               <div>
                 <label className="font-medium">Payment Type</label>
 
                 <div className="flex gap-4 mt-1">
                   {["cash", "gpay", "both"].map((type) => (
-                    <label key={type}>
+                    <label key={type} className="flex items-center gap-1">
                       <input
                         type="radio"
                         value={type}
                         checked={paymentType === type}
                         onChange={(e) => setPaymentType(e.target.value)}
-                      />{" "}
+                      />
                       {type}
                     </label>
                   ))}
@@ -221,15 +205,15 @@ const FormPage = () => {
                 </div>
               )}
 
-              {/* 🔥 SUBMIT BUTTON */}
+              {/* 🔥 BUTTON */}
               <button
-                disabled={submitting}
+                disabled={loading}
                 className="w-full bg-indigo-600 text-white py-2 rounded flex items-center justify-center gap-2"
               >
-                {submitting && (
+                {loading && (
                   <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                 )}
-                {submitting ? "Submitting..." : "Submit"}
+                {loading ? "Submitting..." : "Submit"}
               </button>
 
             </form>

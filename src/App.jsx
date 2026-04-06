@@ -20,10 +20,16 @@ import MyBalancePage from "./pages/MyBalancePage";
 import AdminExpensePage from "./pages/AdminExpensePage";
 import AdminBalancePage from "./pages/AdminBalancePage";
 import StaffDashboard from "./pages/StaffDashboard";
+import ProfitPage from "./pages/ProfitPage";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   return (
+
+    
     <BrowserRouter>
+    <Toaster position="top-right" />
+
 
       <Routes>
 
@@ -46,6 +52,7 @@ function App() {
         <Route path="/admin" element={<AdminLayout />}>
 
         <Route index element={<DashboardPage />} />
+        <Route path="/admin/profit" element={<ProfitPage />} />
 
           <Route path="report" element={<AdminPage />} />
           <Route path="create-staff" element={<CreateStaffPage />} />
