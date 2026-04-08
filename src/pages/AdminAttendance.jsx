@@ -34,6 +34,9 @@ const AdminAttendance = () => {
             <th>In</th>
             <th>Out</th>
             <th>Hours</th>
+            <th>Device</th>
+<th>Browser</th>
+<th>IP</th>
           </tr>
         </thead>
 
@@ -49,6 +52,9 @@ const AdminAttendance = () => {
                   : "-"}
               </td>
               <td>{a.totalHours || 0}</td>
+              <td>{a.deviceInfo?.device}</td>
+<td>{a.deviceInfo?.browser}</td>
+<td>{a.deviceInfo?.ip}</td>
             </tr>
           ))}
         </tbody>
