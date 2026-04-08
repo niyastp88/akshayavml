@@ -55,6 +55,9 @@ const AdminLayout = () => {
           <NavBtn to="/admin/staff-report" color="from-purple-500 to-purple-700">
             Staff Report
           </NavBtn>
+          <NavBtn to="/admin/attendance" color="from-yellow-400 to-yellow-600">
+            Attendance Report
+          </NavBtn>
 
           <NavBtn to="/admin/create-staff" color="from-green-500 to-emerald-700">
             Add Staff

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://akshaya-backend.vercel.app/api",
+  baseURL: "https://akshaya-backend.vercel.ap/api",
 });
 
 API.interceptors.request.use((req) => {

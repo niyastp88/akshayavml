@@ -62,6 +62,12 @@ const StaffLayout = () => {
           >
             Balance Report
           </Link>
+          <Link
+            to="/staff/attendance"
+            className="bg-pink-600 text-white px-3 py-1 rounded"
+          >
+            Attendance Report
+          </Link>
 
           
 

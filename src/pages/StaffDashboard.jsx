@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchStaffDashboard } from "../redux/slices/dashboardSlice";
+import AttendanceButton from "../components/AttendanceButton";
 
 const StaffDashboard = () => {
   const dispatch = useDispatch();
@@ -22,6 +23,8 @@ const StaffDashboard = () => {
       <h2 className="text-2xl font-bold text-gray-800">
         Welcome {user?.name || "User"} 👋
       </h2>
+
+      <AttendanceButton />
 
       {/* 🔥 SHIMMER */}
       {loading ? (

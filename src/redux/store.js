@@ -8,6 +8,7 @@ import serviceCreateReducer from "./slices/serviceCreateSlice";
 import expenseReducer from "./slices/expenseSlice";
 import balanceReducer from "./slices/balanceSlice";
 import dashboardReducer from "./slices/dashboardSlice"; 
+import attendanceReducer from "./slices/attendanceSlice";
 
 export const store = configureStore({
   reducer: {
@@ -20,5 +21,6 @@ export const store = configureStore({
     expense: expenseReducer,
     balance: balanceReducer,
     dashboard: dashboardReducer,
+    attendance: attendanceReducer,
   },
 });

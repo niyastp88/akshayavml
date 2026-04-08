@@ -22,6 +22,8 @@ import AdminBalancePage from "./pages/AdminBalancePage";
 import StaffDashboard from "./pages/StaffDashboard";
 import ProfitPage from "./pages/ProfitPage";
 import { Toaster } from "react-hot-toast";
+import AttendanceHistory from "./pages/AttendanceHistory";
+import AdminAttendance from "./pages/AdminAttendance";
 
 function App() {
   return (
@@ -45,6 +47,7 @@ function App() {
 <Route path="add-balance" element={<AddBalancePage />} />
 <Route path="my-expense" element={<MyExpensePage />} />
   <Route path="my-balance" element={<MyBalancePage />} />
+  <Route path="attendance" element={<AttendanceHistory />} />
 
 </Route>
 
@@ -60,6 +63,7 @@ function App() {
           <Route path="create-service" element={<CreateServicePage />} />
           <Route path="balance" element={<BalancePage />} />
           <Route path="create-expense" element={<CreateExpensePage />} />
+          <Route path="attendance" element={<AdminAttendance />} />
 <Route path="create-balance-type" element={<CreateBalanceTypePage />} />
 <Route path="expense" element={<AdminExpensePage />} />
   <Route path="balance-tx" element={<AdminBalancePage />} />
