@@ -166,6 +166,7 @@ const StaffReportPage = () => {
                 <th className="p-3 border text-right">Bank</th>
                 <th className="p-3 border text-right">Received Cash</th>
                 <th className="p-3 border text-right">Received GPay</th>
+                <th className="p-3 border text-right">Profit</th>
                 <th className="p-3 border text-center">Action</th>
               </tr>
             </thead>
@@ -210,6 +211,9 @@ const StaffReportPage = () => {
 
                     <td className="p-3 border text-indigo-600 font-semibold text-right">
                       ₹{t.gpayAmount || 0}
+                    </td>
+                    <td className="p-3 border text-pink-600 font-semibold text-right">
+                      ₹{t.profit || 0}
                     </td>
 
                     <td className="p-3 border text-center space-x-2">

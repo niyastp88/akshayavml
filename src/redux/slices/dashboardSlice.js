@@ -46,10 +46,14 @@ const slice = createSlice({
         state.loading = false;
         state.data = action.payload;
       })
+      .addCase(fetchStaffDashboard.pending,(state,action)=>{
+        state.loading=true
+
+      })
       .addCase(fetchStaffDashboard.fulfilled, (state, action) => {
         state.loading = false;
         state.data = action.payload;
-      });
+      })
   },
 });
 
