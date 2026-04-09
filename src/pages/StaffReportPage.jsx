@@ -1,249 +1,250 @@
 import { useEffect, useState } from "react";
 import API from "../api/api";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const StaffReportPage = () => {
   const [staffs, setStaffs] = useState([]);
   const [staffId, setStaffId] = useState("");
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [staffLoading, setStaffLoading] = useState(true);
 
   const today = new Date().toISOString().split("T")[0];
   const [from, setFrom] = useState(today);
   const [to, setTo] = useState(today);
 
-  // 🔥 fetch staff list
   useEffect(() => {
-    const fetchStaff = async () => {
-      try {
-        const res = await API.get("/users");
-        setStaffs(res.data);
-      } catch (err) {
-        console.log("Staff fetch error");
-      }
-    };
-
-    fetchStaff();
+    API.get("/users").then((res) => {
+      setStaffs(res.data);
+      setStaffLoading(false);
+    });
   }, []);
 
-  // 🔥 fetch report
   const fetchData = async () => {
-    if (!staffId) {
-      alert("Select staff");
-      return;
-    }
+    if (!staffId) return alert("Select staff");
 
+    setLoading(true);
     try {
-      setLoading(true);
-
       const res = await API.get(
         `/transactions/staff-report?staffId=${staffId}&from=${from}&to=${to}`
       );
-
       setData(res.data);
-    } catch (err) {
-      alert("Failed to load data");
-    } finally {
-      setLoading(false);
+    } catch {
+      alert("Error");
     }
+    setLoading(false);
   };
 
-  // 🔥 DELETE
-  const handleDelete = async (id) => {
-    const confirm = window.confirm("Delete this transaction?");
-    if (!confirm) return;
+  // 🔥 TOTALS
+  const totals = data.reduce(
+    (acc, t) => {
+      acc.cash += t.cashAmount || 0;
+      acc.bank += t.bankAmount || 0;
+      acc.splitCash += t.splitCash || 0;
+      acc.gpay += t.gpayAmount || 0;
+      acc.profit += t.profit || 0;
+      return acc;
+    },
+    { cash: 0, bank: 0, splitCash: 0, gpay: 0, profit: 0 }
+  );
 
-    try {
-      await API.delete(`/transactions/${id}`);
-      fetchData();
-    } catch {
-      alert("Delete failed");
+  // 🔥 WORKING DAYS
+  const getWorkingDays = () => {
+    const start = new Date(from);
+    const end = new Date(to);
+    let count = 0;
+
+    while (start <= end) {
+      if (start.getDay() !== 0) count++;
+      start.setDate(start.getDate() + 1);
     }
+
+    return count || 1;
   };
 
-  // 🔥 EDIT
-  const handleEdit = async (t) => {
-    const newCash = prompt("Enter cash amount", t.cashAmount);
-    const newBank = prompt("Enter bank amount", t.bankAmount);
-    const newSplitCash = prompt("Enter split cash", t.splitCash || 0);
-    const newGpay = prompt("Enter GPay amount", t.gpayAmount || 0);
-    const newType = prompt(
-      "Enter payment type (cash / gpay / both)",
-      t.paymentType || "cash"
-    );
+  const workingDays = getWorkingDays();
+  const target = workingDays * 500;
 
-    if (
-      newCash === null ||
-      newBank === null ||
-      newSplitCash === null ||
-      newGpay === null ||
-      newType === null
-    )
-      return;
+  // 🔥 COLOR
+  const getColor = () => {
+    if (totals.profit < target * 0.5) return "text-red-600";
+    if (totals.profit < target) return "text-yellow-600";
+    return "text-green-600";
+  };
 
-    try {
-      await API.put(`/transactions/${t._id}`, {
-        cashAmount: Number(newCash),
-        bankAmount: Number(newBank),
-        splitCash: Number(newSplitCash),
-        gpayAmount: Number(newGpay),
-        paymentType: newType,
-      });
+  const getBadge = () => {
+    if (totals.profit < target * 0.5)
+      return <span className="bg-red-100 text-red-600 px-2 py-1 rounded animate-pulse">LOW</span>;
 
-      fetchData();
-    } catch {
-      alert("Update failed");
-    }
+    if (totals.profit < target)
+      return <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded animate-pulse">MED</span>;
+
+    return <span className="bg-green-100 text-green-700 px-2 py-1 rounded animate-pulse">GOOD</span>;
+  };
+
+  // 🔥 EXPORT EXCEL
+  const exportExcel = () => {
+    const sheet = [
+      ...data,
+      { serviceName: "TOTAL", ...totals },
+    ];
+
+    const ws = XLSX.utils.json_to_sheet(sheet);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Report");
+
+    const buf = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    saveAs(new Blob([buf]), "report.xlsx");
+  };
+
+  // 🔥 EXPORT PDF
+  const exportPDF = () => {
+    const doc = new jsPDF();
+
+    autoTable(doc, {
+      head: [["Service", "Cash", "Bank", "Split", "GPay", "Profit"]],
+      body: [
+        ...data.map((t) => [
+          t.serviceName,
+          t.cashAmount,
+          t.bankAmount,
+          t.splitCash,
+          t.gpayAmount,
+          t.profit,
+        ]),
+        ["TOTAL", totals.cash, totals.bank, totals.splitCash, totals.gpay, totals.profit],
+      ],
+    });
+
+    doc.save("report.pdf");
   };
 
   return (
-    <div className="p-4">
+    <div className="p-6 space-y-6">
 
-      {/* Header */}
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">
-        Staff Report
-      </h2>
+      <h2 className="text-2xl font-bold">Staff Report 📊</h2>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-4 bg-white p-4 rounded shadow">
+      {/* STAFF LOAD */}
+      {staffLoading ? (
+        <Loader />
+      ) : (
+        <div className="flex gap-2 flex-wrap bg-white p-4 rounded shadow">
 
-        <select
-          value={staffId}
-          onChange={(e) => setStaffId(e.target.value)}
-          className="border p-2 rounded w-full sm:w-auto"
-        >
-          <option value="">Select Staff</option>
+          <select value={staffId} onChange={(e)=>setStaffId(e.target.value)} className="border p-2">
+            <option value="">Select Staff</option>
+            {staffs.map((s) => (
+              <option key={s._id} value={s._id}>{s.name}</option>
+            ))}
+          </select>
 
-          {staffs.map((s) => (
-            <option key={s._id} value={s._id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
+          <input type="date" value={from} onChange={(e)=>setFrom(e.target.value)} />
+          <input type="date" value={to} onChange={(e)=>setTo(e.target.value)} />
 
-        <input
-          type="date"
-          value={from}
-          onChange={(e) => setFrom(e.target.value)}
-          className="border p-2 rounded"
-        />
+          <button onClick={fetchData} className="bg-indigo-600 text-white px-3 py-2 rounded">
+            Load
+          </button>
 
-        <input
-          type="date"
-          value={to}
-          onChange={(e) => setTo(e.target.value)}
-          className="border p-2 rounded"
-        />
-
-        <button
-          onClick={fetchData}
-          className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
-        >
-          Load Report
-        </button>
-
-      </div>
-
-      {/* Loading */}
-      {loading && <p className="text-blue-600">Loading...</p>}
-
-      {/* No Data */}
-      {!loading && data.length === 0 && (
-        <p className="text-gray-500">No data found</p>
+          {data.length > 0 && (
+            <>
+              <button onClick={exportExcel} className="bg-green-600 text-white px-2 py-1 rounded">Excel</button>
+              <button onClick={exportPDF} className="bg-red-600 text-white px-2 py-1 rounded">PDF</button>
+            </>
+          )}
+        </div>
       )}
 
-      {/* Table */}
-      {!loading && data.length > 0 && (
-        <div className="overflow-x-auto bg-white shadow rounded">
+      {/* DATA */}
+      {loading ? (
+        <Loader />
+      ) : data.length > 0 && (
+        <div className="bg-white rounded shadow overflow-x-auto">
 
-          <table className="w-full text-sm border-collapse">
+          <table className="w-full text-sm">
 
-            <thead className="bg-gray-200 text-gray-700">
+            <thead className="bg-gray-800 text-white">
               <tr>
-                <th className="p-3 border">Service</th>
-                <th className="p-3 border">Time</th> {/* 🔥 NEW */}
-                <th className="p-3 border">Payment</th>
-                <th className="p-3 border text-right">Cash</th>
-                <th className="p-3 border text-right">Bank</th>
-                <th className="p-3 border text-right">Received Cash</th>
-                <th className="p-3 border text-right">Received GPay</th>
-                <th className="p-3 border text-right">Profit</th>
-                <th className="p-3 border text-center">Action</th>
+                <th className="p-3 text-left">Service</th>
+                <th className="p-3">Time</th>
+                <th className="p-3">Payment</th>
+                <th className="p-3 text-right">Cash</th>
+                <th className="p-3 text-right">Bank</th>
+                <th className="p-3 text-right">Received Cash</th>
+                <th className="p-3 text-right">Received GPay</th>
+                <th className="p-3 text-right">Profit</th>
               </tr>
             </thead>
 
             <tbody>
-              {data.map((t) => {
-                const d = new Date(t.date);
+              {data.map((t, i) => (
+                <tr key={t._id} className={i % 2 ? "bg-gray-50" : ""}>
 
-                const time = d.toLocaleTimeString("en-IN", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: true,
-                });
+                  <td className="p-3">{t.serviceName}</td>
+                  <td className="p-3 text-center">{new Date(t.date).toLocaleTimeString()}</td>
+                  <td className="p-3 text-center">{t.paymentType}</td>
 
-                return (
-                  <tr key={t._id} className="hover:bg-gray-50 transition">
+                  <td className="p-3 text-right">₹{t.cashAmount}</td>
+                  <td className="p-3 text-right">₹{t.bankAmount}</td>
+                  <td className="p-3 text-right">₹{t.splitCash}</td>
+                  <td className="p-3 text-right">₹{t.gpayAmount}</td>
 
-                    <td className="p-3 border font-medium">
-                      {t.serviceName}
-                    </td>
+                  <td className="p-3 text-right">₹{t.profit}</td>
 
-                    {/* 🔥 TIME */}
-                    <td className="p-3 border text-gray-600 font-medium">
-                      {time}
-                    </td>
-
-                    <td className="p-3 border text-purple-600 font-semibold capitalize">
-                      {t.paymentType || "-"}
-                    </td>
-
-                    <td className="p-3 border text-green-600 font-semibold text-right">
-                      ₹{t.cashAmount}
-                    </td>
-
-                    <td className="p-3 border text-blue-600 font-semibold text-right">
-                      ₹{t.bankAmount || 0}
-                    </td>
-
-                    <td className="p-3 border text-orange-500 font-semibold text-right">
-                      ₹{t.splitCash || 0}
-                    </td>
-
-                    <td className="p-3 border text-indigo-600 font-semibold text-right">
-                      ₹{t.gpayAmount || 0}
-                    </td>
-                    <td className="p-3 border text-pink-600 font-semibold text-right">
-                      ₹{t.profit || 0}
-                    </td>
-
-                    <td className="p-3 border text-center space-x-2">
-
-                      <button
-                        onClick={() => handleEdit(t)}
-                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
-                      >
-                        Edit
-                      </button>
-
-                      <button
-                        onClick={() => handleDelete(t._id)}
-                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
-                      >
-                        Delete
-                      </button>
-
-                    </td>
-
-                  </tr>
-                );
-              })}
+                </tr>
+              ))}
             </tbody>
 
+            {/* TOTAL */}
+            <tfoot className="bg-gray-100 font-bold">
+              <tr>
+                <td colSpan="3" className="p-3 text-right">TOTAL</td>
+
+                <td className="p-3 text-right">₹{totals.cash}</td>
+                <td className="p-3 text-right">₹{totals.bank}</td>
+                <td className="p-3 text-right">₹{totals.splitCash}</td>
+                <td className="p-3 text-right">₹{totals.gpay}</td>
+
+                <td className={`p-3 text-right ${getColor()}`}>
+                  ₹{totals.profit}
+                </td>
+              </tr>
+            </tfoot>
+
           </table>
+
+          {/* STATUS */}
+          <div className="p-4 flex justify-between items-center">
+
+            <div>
+              Target: ₹{target} ({workingDays} days)
+            </div>
+
+            <div className="flex items-center gap-2">
+              {getBadge()}
+              <span className={getColor()}>
+                ₹{totals.profit}
+              </span>
+            </div>
+
+          </div>
+
         </div>
       )}
+
     </div>
   );
 };
+
+const Loader = () => (
+  <div className="flex justify-center py-10">
+    <div className="flex gap-2">
+      <span className="w-4 h-4 bg-blue-500 rounded-full animate-bounce"></span>
+      <span className="w-4 h-4 bg-green-500 rounded-full animate-bounce delay-150"></span>
+      <span className="w-4 h-4 bg-purple-500 rounded-full animate-bounce delay-300"></span>
+    </div>
+  </div>
+);
 
 export default StaffReportPage;
