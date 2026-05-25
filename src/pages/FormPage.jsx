@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchServices } from "../redux/slices/serviceSlice";
 import { addTransaction } from "../redux/slices/transactionSlice";
@@ -20,12 +20,33 @@ const FormPage = () => {
   const [splitCash, setSplitCash] = useState("");
   const [splitGpay, setSplitGpay] = useState("");
 
+  // Search and Dropdown States
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
   // 🔥 LOCAL LOADING (IMPORTANT)
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     dispatch(fetchServices());
   }, [dispatch]);
+
+  // Dropdown പുറത്ത് ക്ലിക്ക് ചെയ്താൽ ക്ലോസ് ആകാൻ
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Filter services based on search query
+  const filteredServices = services?.filter((s) =>
+    s.name.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -61,7 +82,7 @@ const FormPage = () => {
       }
 
       finalCash = c;
-      finalGpay = g;
+      finalGpay = g; // Syntax error fixed here
     }
 
     const confirm = window.confirm(
@@ -101,6 +122,7 @@ const FormPage = () => {
 
         // reset
         setSelectedService(null);
+        setSearchQuery("");
         setCashAmount("");
         setBankAmount("");
         setPaymentType("");
@@ -118,118 +140,176 @@ const FormPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-white flex items-center justify-center p-4">
-
-      <div className="w-full max-w-lg">
-
-        <div className="bg-white p-6 rounded-xl shadow">
-
-          <h2 className="text-xl font-bold mb-4 text-center">
-            Add Transaction
-          </h2>
+    <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-4 md:p-8 text-slate-100">
+      <div className="w-full max-w-xl">
+        <div className="bg-[#1e293b] p-6 md:p-8 rounded-2xl border border-slate-800/80 shadow-2xl transition-all">
+          
+          <div className="border-b border-slate-800 pb-4 mb-6 text-center">
+            <h2 className="text-2xl font-bold text-white tracking-tight">Add New Transaction</h2>
+            <p className="text-sm text-slate-400 mt-1">Record client service payments efficiently</p>
+          </div>
 
           {fetchLoading ? (
-            <p>Loading services...</p>
+            <div className="flex flex-col items-center justify-center py-12 space-y-3">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+              <p className="text-sm text-slate-400 font-medium">Loading services...</p>
+            </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
 
-              {/* Service */}
-              <select
-                value={selectedService?._id || ""}
-                onChange={(e) => {
-                  const s = services.find(
-                    (x) => x._id === e.target.value
-                  );
-                  setSelectedService(s);
+              {/* Searchable Service Dropdown */}
+              <div className="relative" ref={dropdownRef}>
+                <label className="block text-sm font-semibold text-slate-300 mb-2">Select Service</label>
+                <div
+                  className="w-full border border-slate-700 bg-[#0f172a] p-3 rounded-xl cursor-pointer flex justify-between items-center transition-all focus-within:ring-2 focus-within:ring-indigo-950 focus-within:border-indigo-500"
+                  onClick={() => setIsOpen(!isOpen)}
+                >
+                  <span className={`font-medium ${selectedService ? "text-white" : "text-slate-500"}`}>
+                    {selectedService ? selectedService.name : "Choose a service..."}
+                  </span>
+                  <svg className={`w-5 h-5 text-slate-500 transition-transform ${isOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
 
-                  setCashAmount("");
-                  setBankAmount("");
-                  setPaymentType("");
-                  setSplitCash("");
-                  setSplitGpay("");
-                }}
-                className="w-full border p-2 rounded"
-              >
-                <option value="">Select Service</option>
-
-                {services.map((s) => (
-                  <option key={s._id} value={s._id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-
-              {/* Cash */}
-              {selectedService?.hasCash && (
-                <input
-                  type="number"
-                  placeholder="Cash Amount"
-                  value={cashAmount}
-                  onChange={(e) => setCashAmount(e.target.value)}
-                  className="w-full border p-2 rounded"
-                />
-              )}
-
-              {/* Bank */}
-              {selectedService?.hasBank && (
-                <input
-                  type="number"
-                  placeholder="Bank Amount"
-                  value={bankAmount}
-                  onChange={(e) => setBankAmount(e.target.value)}
-                  className="w-full border p-2 rounded"
-                />
-              )}
-
-              {/* Payment */}
-              <div>
-                <label className="font-medium">Payment Type</label>
-
-                <div className="flex gap-4 mt-1">
-                  {["cash", "gpay", "both"].map((type) => (
-                    <label key={type}>
+                {isOpen && (
+                  <div className="absolute z-10 w-full mt-2 bg-[#1e293b] border border-slate-800 shadow-2xl rounded-xl overflow-hidden max-h-60 flex flex-col animate-fadeIn">
+                    <div className="p-2 border-b border-slate-800 bg-[#0f172a]">
                       <input
-                        type="radio"
-                        value={type}
-                        checked={paymentType === type}
-                        onChange={(e) => setPaymentType(e.target.value)}
-                      />{" "}
-                      {type}
-                    </label>
+                        type="text"
+                        placeholder="Search service..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onClick={(e) => e.stopPropagation()} 
+                        className="w-full border border-slate-700 bg-[#1e293b] px-3 py-2 rounded-lg text-sm outline-none focus:border-indigo-500 font-medium text-slate-200 dark:scheme-dark"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="overflow-y-auto flex-1">
+                      {filteredServices.length === 0 ? (
+                        <p className="p-4 text-sm text-slate-500 text-center">No services found</p>
+                      ) : (
+                        filteredServices.map((s) => (
+                          <div
+                            key={s._id}
+                            className={`px-4 py-3 text-sm cursor-pointer transition-colors font-medium ${selectedService?._id === s._id ? "bg-indigo-600/20 text-indigo-400" : "text-slate-300 hover:bg-[#0f172a]"}`}
+                            onClick={() => {
+                              setSelectedService(s);
+                              setIsOpen(false);
+                              setSearchQuery("");
+                              setCashAmount("");
+                              setBankAmount("");
+                              setPaymentType("");
+                              setSplitCash("");
+                              setSplitGpay("");
+                            }}
+                          >
+                            {s.name}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Conditional Amount Fields */}
+              {(selectedService?.hasCash || selectedService?.hasBank) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#0f172a]/40 border border-slate-800/60 p-4 rounded-2xl animate-fadeIn">
+                  {/* Cash Amount */}
+                  {selectedService?.hasCash && (
+                    <div>
+                      <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Cash Amount</label>
+                      <input
+                        type="number"
+                        placeholder="₹ 0.00"
+                        value={cashAmount}
+                        onChange={(e) => setCashAmount(e.target.value)}
+                        className="w-full border border-slate-700 bg-[#0f172a] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-950 p-3 rounded-xl outline-none transition-all font-semibold text-white placeholder-slate-600"
+                      />
+                    </div>
+                  )}
+
+                  {/* Bank Amount */}
+                  {selectedService?.hasBank && (
+                    <div>
+                      <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Bank Amount</label>
+                      <input
+                        type="number"
+                        placeholder="₹ 0.00"
+                        value={bankAmount}
+                        onChange={(e) => setBankAmount(e.target.value)}
+                        className="w-full border border-slate-700 bg-[#0f172a] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-950 p-3 rounded-xl outline-none transition-all font-semibold text-white placeholder-slate-600"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Payment Type Tabs */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-300 mb-2.5">Payment Received As</label>
+                <div className="grid grid-cols-3 gap-2 bg-[#0f172a] p-1.5 rounded-xl border border-slate-800">
+                  {[
+                    { id: "cash", label: "Full Cash" },
+                    { id: "gpay", label: "Full GPay" },
+                    { id: "both", label: "Split Pay" },
+                  ].map((type) => (
+                    <button
+                      key={type.id}
+                      type="button"
+                      onClick={() => setPaymentType(type.id)}
+                      className={`py-2.5 text-xs sm:text-sm font-bold rounded-lg transition-all cursor-pointer ${paymentType === type.id ? "bg-indigo-600 text-white shadow-lg" : "text-slate-400 hover:text-slate-200"}`}
+                    >
+                      {type.label}
+                    </button>
                   ))}
                 </div>
               </div>
 
-              {/* Split */}
+              {/* Split Fields Toggle */}
               {paymentType === "both" && (
-                <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="number"
-                    placeholder="Split Cash"
-                    value={splitCash}
-                    onChange={(e) => setSplitCash(e.target.value)}
-                    className="border p-2 rounded"
-                  />
+                <div className="grid grid-cols-2 gap-4 border border-indigo-900/40 bg-indigo-950/10 p-4 rounded-2xl animate-fadeIn">
+                  <div>
+                    <label className="block text-xs font-bold text-indigo-400 mb-1.5">Split Cash amount</label>
+                    <input
+                      type="number"
+                      placeholder="₹ Cash"
+                      value={splitCash}
+                      onChange={(e) => setSplitCash(e.target.value)}
+                      className="w-full border border-slate-700 bg-[#0f172a] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-950 p-2.5 rounded-xl outline-none transition-all font-semibold text-white text-sm placeholder-slate-600"
+                    />
+                  </div>
 
-                  <input
-                    type="number"
-                    placeholder="Split GPay"
-                    value={splitGpay}
-                    onChange={(e) => setSplitGpay(e.target.value)}
-                    className="border p-2 rounded"
-                  />
+                  <div>
+                    <label className="block text-xs font-bold text-indigo-400 mb-1.5">Split GPay amount</label>
+                    <input
+                      type="number"
+                      placeholder="₹ GPay"
+                      value={splitGpay}
+                      onChange={(e) => setSplitGpay(e.target.value)}
+                      className="w-full border border-slate-700 bg-[#0f172a] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-950 p-2.5 rounded-xl outline-none transition-all font-semibold text-white text-sm placeholder-slate-600"
+                    />
+                  </div>
                 </div>
               )}
 
               {/* 🔥 SUBMIT BUTTON */}
               <button
                 disabled={submitting}
-                className="w-full bg-indigo-600 text-white py-2 rounded flex items-center justify-center gap-2"
+                className={`w-full py-3 px-4 rounded-xl text-white font-semibold transition-all duration-150 cursor-pointer ${submitting ? "bg-indigo-600/40 text-slate-400 cursor-not-allowed shadow-none" : "bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] shadow-lg shadow-indigo-950/50"}`}
               >
-                {submitting && (
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                {submitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Submitting Transaction...
+                  </span>
+                ) : (
+                  "Submit Transaction"
                 )}
-                {submitting ? "Submitting..." : "Submit"}
               </button>
 
             </form>
